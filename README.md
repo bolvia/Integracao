@@ -1,2 +1,99 @@
 # Integracao
-Integração Zabbix > SendGrid
+
+INTEGRAÇÃO ZABBIX > SENGRID
+
+Em resumo, a integração do Zabbix com o SendGrid traz benefícios significativos, como maior confiabilidade, escalabilidade, personalização, monitoramento em tempo real e acesso a métricas detalhadas. Esses benefícios ajudam a melhorar a eficácia do sistema de monitoramento e a agilidade na resposta a eventos e incidentes.
+
+
+Step 1:
+
+Obter uma conta no SendGrid para coleta da chave API e conta;
+
+Obter um domínio no SendGrid;
+
+Acessar o Servidor Zabbix com a permissão ROOT;
+
+Instalar o pacote curl no servidor Zabbix;
+
+Criar o script sendgrid.sh no servidor Zabbix, que será executado quando um problema for detectado, com o seguinte conteúdo:
+
+ 
+Script Json 
+
+#!/usr/bin/env python3
+
+import os
+import sys
+import json
+import requests
+
+import boto3
+
+os.environ["AWS_DEFAULT_REGION"] = "us-east-2"
+client = boto3.client("ssm")
+
+API_KEY = client.get_parameter( Name="/application/zabbix/SENDGRID_API_KEY", WithDecryption=True)["Parameter"]["Value"]
+FROM_EMAIL = "noc@madeiramadeira.com.br"
+TO_EMAILS = sys.argv[1].split(",")
+SUBJECT = sys.argv[2]
+BODY = sys.argv[3]
+
+personalizations = []
+for email in TO_EMAILS:
+    personalizations.append({
+        "to": [{"email": email}]
+    })
+
+data = {
+    "personalizations": personalizations,
+    "from": {"email": FROM_EMAIL},
+    "subject": SUBJECT,
+    "content": [{"type": "text/plain", "value": BODY}]
+}
+
+headers = {
+    "Authorization": "Bearer " + API_KEY,
+    "Content-Type": "application/json"
+}
+
+response = requests.post(
+    "https://api.sendgrid.com/v3/mail/send",
+    data=json.dumps(data),
+    headers=headers
+)
+
+if response.status_code != 202:
+    print("Failed to send email: " + response.content)
+    sys.exit(1)
+
+    Diretório /usr/lib/zabbix/alertscripts/sendgrid.sh
+
+Tornar o script executável com o comando chmod +x sendgrid.sh;
+
+Adicionar o script de alerta ao Zabbix;
+
+Acessar a interface web do Zabbix;
+
+Acessar "Administração" -> "Tipos de mídia" e "Criar tipo de mídia"; Preencher os seguintes campos:
+
+Nome: SendGrid Tipo: Script Script Name: sendgrid.sh Script parameters: {ALERT.SENDTO} {ALERT.SUBJECT} {ALERT.MESSAGE}. 
+salvar.
+
+
+Step 2:
+
+Criar uma ação para o envio de e-mail, através da opção “Configuração” > “Ações” > “Triggers”
+
+Em seguida, defina a ação que será executada quando as condições forem atendidas. Selecione "Enviar mensagem" como a ação a ser executada.
+
+
+Step 3:
+
+ 
+Definir os grupos que farão parte do gatilho para o envio de e-mail
+
+Definir o intervalo que os gatilho fará o envio do e-mail
+
+Na seção "Mensagem", defina o assunto e o corpo da mensagem que será enviada por e-mail. Você pode usar variáveis do Zabbix para inserir informações específicas da condição que acionou a ação.
+
+Observação: Lembrando que hoje nós utilizamos a função max(#5)} nos links monitorados. A função citada faz com que a operação receba alertas após 5min do incidente. Sendo assim, a tratativa com a operadora, irá começar após 15 min do incidente.
