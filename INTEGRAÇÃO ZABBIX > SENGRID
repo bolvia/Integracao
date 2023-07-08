@@ -96,4 +96,4 @@ Definir o intervalo que os gatilho fará o envio do e-mail
 
 Na seção "Mensagem", defina o assunto e o corpo da mensagem que será enviada por e-mail. Você pode usar variáveis do Zabbix para inserir informações específicas da condição que acionou a ação.
 
-Observação: Lembrando que hoje nós utilizamos a função max(#5)} nos links monitorados. A função citada faz com que a operação receba alertas após 5min do incidente. Sendo assim, a tratativa com a operadora, irá começar após 15 min do incidente.
+
