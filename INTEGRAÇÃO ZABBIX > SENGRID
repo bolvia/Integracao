@@ -29,11 +29,11 @@ import requests
 
 import boto3
 
-os.environ["AWS_DEFAULT_REGION"] = "us-east-2"
+os.environ["AWS_DEFAULT_REGION"] = ""
 client = boto3.client("ssm")
 
 API_KEY = client.get_parameter( Name="/application/zabbix/SENDGRID_API_KEY", WithDecryption=True)["Parameter"]["Value"]
-FROM_EMAIL = "noc@madeiramadeira.com.br"
+FROM_EMAIL = "GRUPO DE EMAIL"
 TO_EMAILS = sys.argv[1].split(",")
 SUBJECT = sys.argv[2]
 BODY = sys.argv[3]
